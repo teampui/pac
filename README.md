@@ -30,6 +30,8 @@ func main() {
 ```
 package main
 
+import 	"github.com/gofiber/fiber/v2"
+
 type RootpathService struct{}
 
 func NewRootpathService() *RootpathService {
