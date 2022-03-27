@@ -1,6 +1,6 @@
 # Pac
 
-Pac is a optioned framework based on Fiber to speed up basic monolithlic backend systems.
+Pac is a opinionated framework based on Fiber to speed up basic monolithic back-end systems.
 
 ## Usage
 
