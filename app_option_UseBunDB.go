@@ -9,6 +9,10 @@ import (
 )
 
 func UseBunDB(dsn string) AppOption {
+	if dsn == "" {
+		panic("[pac/bunDB] cannot start, missed DSN settings")
+	}
+
 	return func(a *App) {
 		sqldb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn)))
 		a.RegisterService("db", bun.NewDB(sqldb, pgdialect.New()))
