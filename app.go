@@ -91,6 +91,11 @@ func (a *App) RegisterMiddleware(svcName string, svcFunc Middleware) {
 	a.services[svcName] = svcFunc
 }
 
+// Router returns internal Fiber App instance
+func (a *App) Router() *fiber.App {
+	return a.fiber
+}
+
 // Option represent a function to modify pac app behavior
 type AppOption func(*App)
 
@@ -100,5 +105,5 @@ type Middleware func(opts ...any) func(c *fiber.Ctx) error
 
 // Service represent a package of related functions
 type Service interface {
-	Register(app *App, r *fiber.App)
+	Register(app *App)
 }
