@@ -50,8 +50,9 @@ type App struct {
 	//
 	port string
 	//
-	hookCreated []AppOption
+	hookCreated  []AppOption
 	middlewares  map[string]Middleware
+	repositories map[string]Repository
 }
 
 // Add will add service to pac app, callin' its `Register()` to inject routes
@@ -90,6 +91,21 @@ func (a *App) Middleware(svcName string) Middleware {
 func (a *App) RegisterMiddleware(svcName string, svcFunc Middleware) {
 	a.middlewares[svcName] = svcFunc
 }
+
+// Repository return requested repository from registry, return nil if not found
+func (a *App) Repository(repoName string) Repository {
+	svc, ok := a.repositories[repoName]
+
+	if !ok {
+		return nil
+	}
+
+	return svc
+}
+
+// RegisterRepository put repo into registry
+func (a *App) RegisterRepository(repoName string, repo Repository) {
+	a.repositories[repoName] = repo
 }
 
 // Router returns internal Fiber App instance
@@ -103,6 +119,9 @@ type AppOption func(*App)
 // Middleware represent a middleware runs before handler. It accepts
 // any number of options and return a handler to caller
 type Middleware func(opts ...any) func(c *fiber.Ctx) error
+
+// Repository is actual same as service
+type Repository Service
 
 // Service represent a package of related functions
 type Service interface {
