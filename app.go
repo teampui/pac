@@ -12,8 +12,10 @@ import (
 func NewApp(opts ...AppOption) *App {
 	// create new pac app
 	pacApp := App{
-		hookCreated: []AppOption{},
-		services:    make(map[string]Middleware),
+		hookCreated:  []AppOption{},
+		middlewares:  make(map[string]Middleware),
+		repositories: make(map[string]Repository),
+		services:     make(map[string]any),
 	}
 
 	// apply options
@@ -44,15 +46,17 @@ func NewApp(opts ...AppOption) *App {
 
 // App is Pac App which accept services and serves
 type App struct {
-	//
+	// fiber-related
 	fiber      *fiber.App
 	templateFs *embed.FS
-	//
+	// listen port
 	port string
-	//
-	hookCreated  []AppOption
+	// hooks
+	hookCreated []AppOption
+	// registry
 	middlewares  map[string]Middleware
 	repositories map[string]Repository
+	services     map[string]any
 }
 
 // Add will add service to pac app, callin' its `Register()` to inject routes
@@ -106,6 +110,22 @@ func (a *App) Repository(repoName string) Repository {
 // RegisterRepository put repo into registry
 func (a *App) RegisterRepository(repoName string, repo Repository) {
 	a.repositories[repoName] = repo
+}
+
+// Service return requested service from registry, return nil if not found
+func (a *App) Service(svgName string) any {
+	svc, ok := a.services[svgName]
+
+	if !ok {
+		return nil
+	}
+
+	return svc
+}
+
+// RegisterService put service into registry
+func (a *App) RegisterService(svcName string, svc any) {
+	a.services[svcName] = svc
 }
 
 // Router returns internal Fiber App instance
