@@ -51,13 +51,13 @@ type App struct {
 	port string
 	//
 	hookCreated []AppOption
-	services    map[string]Middleware
+	middlewares  map[string]Middleware
 }
 
 // Add will add service to pac app, callin' its `Register()` to inject routes
 // and register service functions to app.
 func (a *App) Add(svc Service) {
-	svc.Register(a, a.fiber)
+	svc.Register(a)
 }
 
 // Start will start server and listen to given PORT
@@ -77,7 +77,7 @@ func (a *App) Start() {
 
 // Middleware return function by its register name, return nil if not found
 func (a *App) Middleware(svcName string) Middleware {
-	svc, ok := a.services[svcName]
+	svc, ok := a.middlewares[svcName]
 
 	if !ok {
 		return nil
@@ -88,7 +88,8 @@ func (a *App) Middleware(svcName string) Middleware {
 
 // RegisterMiddleware register middleware function to pac app, get by call `Middleware()`
 func (a *App) RegisterMiddleware(svcName string, svcFunc Middleware) {
-	a.services[svcName] = svcFunc
+	a.middlewares[svcName] = svcFunc
+}
 }
 
 // Router returns internal Fiber App instance
