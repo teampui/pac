@@ -76,7 +76,7 @@ func (a *App) Start() {
 }
 
 // Service return function by its register name, return nil if not found
-func (a *App) Service(svcName string) Middleware {
+func (a *App) Middleware(svcName string) Middleware {
 	svc, ok := a.services[svcName]
 
 	if !ok {
@@ -87,7 +87,7 @@ func (a *App) Service(svcName string) Middleware {
 }
 
 // RegisterService register function to pac app, get by call `Service()`
-func (a *App) RegisterService(svcName string, svcFunc Middleware) {
+func (a *App) RegisterMiddleware(svcName string, svcFunc Middleware) {
 	a.services[svcName] = svcFunc
 }
 
