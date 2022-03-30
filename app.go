@@ -1,21 +1,16 @@
 package pac
 
-import (
-	"embed"
-	"net/http"
-
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/template/django"
-)
+import "github.com/gofiber/fiber/v2"
 
 // NewApplication returns a Pac App
 func NewApp(opts ...AppOption) *App {
 	// create new pac app
 	pacApp := App{
-		hookCreated:  []AppOption{},
-		middlewares:  make(map[string]Middleware),
-		repositories: make(map[string]Repository),
-		services:     make(map[string]any),
+		HookCreated:      []AppOption{},
+		HookBeforeCreate: []AppConfig{},
+		Middlewares:      NewRegistry[Middleware](),
+		Repositories:     NewRegistry[Repository](),
+		Services:         NewRegistry[any](),
 	}
 
 	// apply options
@@ -28,17 +23,22 @@ func NewApp(opts ...AppOption) *App {
 		DisableStartupMessage: true,
 	}
 
-	if pacApp.templateFs != nil {
-		fiberCfg.Views = django.NewFileSystem(http.FS(*pacApp.templateFs), ".html.twig")
+	// apply before create hook
+	for _, hook := range pacApp.HookBeforeCreate {
+		hook(&fiberCfg)
 	}
 
 	// Pass the engine to the Views
 	pacApp.fiber = fiber.New(fiberCfg)
 
-	// apply hook
-	for _, hook := range pacApp.hookCreated {
+	// apply created hook
+	for _, hook := range pacApp.HookCreated {
 		hook(&pacApp)
 	}
+
+	// clear everything after success called
+	pacApp.HookCreated = nil
+	pacApp.HookBeforeCreate = nil
 
 	// return to caller
 	return &pacApp
@@ -47,16 +47,16 @@ func NewApp(opts ...AppOption) *App {
 // App is Pac App which accept services and serves
 type App struct {
 	// fiber-related
-	fiber      *fiber.App
-	templateFs *embed.FS
+	fiber *fiber.App
 	// listen port
 	port string
 	// hooks
-	hookCreated []AppOption
+	HookCreated      []AppOption
+	HookBeforeCreate []AppConfig
 	// registry
-	middlewares  map[string]Middleware
-	repositories map[string]Repository
-	services     map[string]any
+	Middlewares  *Registry[Middleware]
+	Repositories *Registry[Repository]
+	Services     *Registry[any]
 }
 
 // Add will add service to pac app, callin' its `Register()` to inject routes
@@ -80,58 +80,58 @@ func (a *App) Start() {
 	}
 }
 
-// Middleware return function by its register name, return nil if not found
-func (a *App) Middleware(svcName string) Middleware {
-	svc, ok := a.middlewares[svcName]
-
-	if !ok {
-		return nil
-	}
-
-	return svc
-}
-
-// RegisterMiddleware register middleware function to pac app, get by call `Middleware()`
-func (a *App) RegisterMiddleware(svcName string, svcFunc Middleware) {
-	a.middlewares[svcName] = svcFunc
-}
-
-// Repository return requested repository from registry, return nil if not found
-func (a *App) Repository(repoName string) Repository {
-	svc, ok := a.repositories[repoName]
-
-	if !ok {
-		return nil
-	}
-
-	return svc
-}
-
-// RegisterRepository put repo into registry
-func (a *App) RegisterRepository(repoName string, repo Repository) {
-	a.repositories[repoName] = repo
-}
-
-// Service return requested service from registry, return nil if not found
-func (a *App) Service(svgName string) any {
-	svc, ok := a.services[svgName]
-
-	if !ok {
-		return nil
-	}
-
-	return svc
-}
-
-// RegisterService put service into registry
-func (a *App) RegisterService(svcName string, svc any) {
-	a.services[svcName] = svc
-}
-
 // Router returns internal Fiber App instance
 func (a *App) Router() *fiber.App {
 	return a.fiber
 }
+
+// Router returns internal Fiber App instance
+func (a *App) Middleware(name string) Middleware {
+	found := a.Middlewares.Get(name)
+
+	if found == nil {
+		return nil
+	}
+
+	return (*found)
+}
+
+// Repo[T] return repository and convert into user's request type
+func Repo[T any](a *App, name string) *T {
+	item := a.Repositories.Get(name)
+
+	if item == nil {
+		return nil
+	}
+
+	reqItem, ok := (*item).(T)
+
+	if !ok {
+		return nil
+	}
+
+	return &reqItem
+}
+
+// Svc[T] return service and convert into user's request type
+func Svc[T any](a *App, name string) *T {
+	item := a.Services.Get(name)
+
+	if item == nil {
+		return nil
+	}
+
+	reqItem, ok := (*item).(T)
+
+	if !ok {
+		return nil
+	}
+
+	return &reqItem
+}
+
+// Option represent a function to modify pac app behavior
+type AppConfig func(*fiber.Config)
 
 // Option represent a function to modify pac app behavior
 type AppOption func(*App)

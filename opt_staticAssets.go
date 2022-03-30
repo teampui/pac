@@ -7,9 +7,9 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
 )
 
-func ServeStaticAssets(fs embed.FS) AppOption {
+func ServeStatic(fs embed.FS) AppOption {
 	return func(a *App) {
-		a.hookCreated = append(a.hookCreated, func(a *App) {
+		a.HookCreated = append(a.HookCreated, func(a *App) {
 			a.fiber.Use("/public", filesystem.New(filesystem.Config{
 				Root: http.FS(fs),
 			}))

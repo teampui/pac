@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func UseListenPortFromEnv(default_listen string) AppOption {
+func ListenPortFromEnv(default_listen string) AppOption {
 	return func(a *App) {
 		envPort := os.Getenv("PORT")
 		envPort = strings.TrimSpace(envPort)
