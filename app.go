@@ -130,6 +130,22 @@ func Svc[T any](a *App, name string) *T {
 	return &reqItem
 }
 
+// Must[T] will check given variable, and force to assert it as type T
+// panic user's error message if unsuccessful
+func Must[T any](src any, error_msg string) T {
+	if src == nil {
+		panic(error_msg)
+	}
+
+	v, ok := src.(*T)
+
+	if !ok {
+		panic(error_msg)
+	}
+
+	return *v
+}
+
 // Option represent a function to modify pac app behavior
 type AppConfig func(*fiber.Config)
 
