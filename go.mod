@@ -3,6 +3,7 @@ module github.com/teampui/pac
 go 1.18
 
 require (
+	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gofiber/fiber/v2 v2.31.0
 	github.com/gofiber/storage/redis v0.0.0-20220324063137-771b96b21118
 	github.com/gofiber/template v1.6.26
