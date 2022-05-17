@@ -1,6 +1,8 @@
 package pac
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"github.com/gofiber/fiber/v2"
+)
 
 // NewApplication returns a Pac App
 func NewApp(opts ...AppOption) *App {
@@ -141,6 +143,10 @@ func Must[T any](src any, error_msg string) T {
 
 	if !ok {
 		panic(error_msg)
+	}
+
+	if v == nil {
+		panic(error_msg + "; maybe registered entity not fully implement the interface?")
 	}
 
 	return *v
